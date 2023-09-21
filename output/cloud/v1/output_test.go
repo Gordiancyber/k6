@@ -713,8 +713,8 @@ func TestNewOutputClientTimeout(t *testing.T) {
 }
 
 func newTestOutput(params output.Params) (*Output, error) {
-	conf, err := cloudapi.GetConsolidatedConfig(
-		params.JSONConfig, params.Environment, params.ConfigArgument, params.ScriptOptions.External)
+	conf, _, err := cloudapi.GetConsolidatedConfig(
+		params.JSONConfig, params.Environment, params.ConfigArgument, params.ScriptOptions.Cloud, params.ScriptOptions.External)
 	if err != nil {
 		return nil, err
 	}
