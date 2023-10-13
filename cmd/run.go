@@ -363,7 +363,7 @@ func (c *cmdRun) run(cmd *cobra.Command, args []string) (err error) {
 			reportCtx, reportCancel := context.WithTimeout(globalCtx, 3*time.Second)
 			defer reportCancel()
 			logger.Debug("Sending usage report...")
-			if rerr := reportUsage(reportCtx, execScheduler); rerr != nil {
+			if rerr := reportUsage(reportCtx, execScheduler, test.moduleResolver.Imported()); rerr != nil {
 				logger.WithError(rerr).Debug("Error sending usage report")
 			} else {
 				logger.Debug("Usage report sent successfully")
@@ -439,7 +439,7 @@ a commandline interface for interacting with it.`,
 	return runCmd
 }
 
-func reportUsage(ctx context.Context, execScheduler *execution.Scheduler) error {
+func reportUsage(ctx context.Context, execScheduler *execution.Scheduler, importedModules []string) error {
 	execState := execScheduler.GetState()
 	executorConfigs := execScheduler.GetExecutorConfigs()
 
@@ -447,6 +447,10 @@ func reportUsage(ctx context.Context, execScheduler *execution.Scheduler) error 
 	for _, ec := range executorConfigs {
 		executors[ec.GetType()]++
 	}
+
+	// TODO: send only public and known modules (under grafana)
+
+	fmt.Println("TEST IMPORTED:", importedModules)
 
 	body, err := json.Marshal(map[string]interface{}{
 		"k6_version": consts.Version,
@@ -456,6 +460,8 @@ func reportUsage(ctx context.Context, execScheduler *execution.Scheduler) error 
 		"duration":   execState.GetCurrentTestRunDuration().String(),
 		"goos":       runtime.GOOS,
 		"goarch":     runtime.GOARCH,
+		// "modules":    importedModules,
+		// "outputs":    outputs,
 	})
 	if err != nil {
 		return err
